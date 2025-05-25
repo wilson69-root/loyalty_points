@@ -79,17 +79,16 @@ const Header = () => {
   ];
 
   return (
-    <header className="bg-gradient-to-br from-gray-900 to-gray-800 border-b border-gray-700 shadow-md z-20 sticky top-0">
-      <div className="flex items-center justify-between px-4 md:px-6 py-3">
-        <div className="flex items-center">
+    <header className="bg-gradient-to-br from-gray-900 to-gray-800 border-b border-gray-700 shadow-md z-20 sticky top-0 w-full">
+      <div className="flex flex-col sm:flex-row items-center justify-between px-2 sm:px-4 md:px-6 py-2 sm:py-3 gap-2 sm:gap-0">
+        <div className="flex items-center w-full sm:w-auto justify-between sm:justify-start">
           <Store className="h-8 w-8 text-purple-400 mr-3" />
           <div>
             <h1 className="text-lg font-semibold text-white tracking-wide">{businessName}</h1>
             <p className="text-sm text-gray-400">{getPageTitle()}</p>
           </div>
         </div>
-        
-        <div className="flex items-center space-x-2 md:space-x-4">
+        <div className="flex items-center space-x-1 xs:space-x-2 md:space-x-4 w-full sm:w-auto justify-end">
           {/* Search Input - Toggles */}
           <div ref={searchRef} className="relative flex items-center">
             {!isSearchOpen && (
@@ -108,7 +107,7 @@ const Header = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search customers, rewards..."
-                  className="py-2 px-4 w-40 md:w-64 bg-transparent text-white placeholder-gray-500 focus:outline-none rounded-full"
+                  className="py-2 px-3 xs:px-4 w-28 xs:w-40 md:w-64 bg-transparent text-white placeholder-gray-500 focus:outline-none rounded-full text-sm"
                   autoFocus
                 />
                 <button type="submit" className="p-1.5 rounded-full hover:bg-gray-600" aria-label="Submit search">
@@ -128,11 +127,10 @@ const Header = () => {
 
           <button 
             onClick={() => navigate('/check-in')}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 md:px-4 rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap shadow-md"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-2 py-2 xs:px-3 md:px-4 rounded-md text-xs xs:text-sm font-medium transition-colors duration-200 whitespace-nowrap shadow-md"
           >
             Check-In
           </button>
-          
           {/* Notifications Dropdown */}
           <div ref={notificationsRef} className="relative">
             <button 
@@ -146,7 +144,7 @@ const Header = () => {
               )}
             </button>
             {isNotificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 z-30">
+              <div className="absolute right-0 mt-2 w-72 xs:w-80 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 z-30">
                 <div className="px-4 py-2 border-b border-gray-700">
                   <h3 className="text-sm font-semibold text-white">Notifications</h3>
                 </div>
@@ -166,7 +164,6 @@ const Header = () => {
               </div>
             )}
           </div>
-
           {/* Profile Dropdown */}
           <div ref={profileRef} className="relative">
             <button 
@@ -178,7 +175,7 @@ const Header = () => {
               <ChevronDown className={`h-4 w-4 text-gray-400 ml-1 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
             </button>
             {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-1 z-30">
+              <div className="absolute right-0 mt-2 w-40 xs:w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-1 z-30">
                 <button 
                   onClick={() => { navigate('/settings'); setIsProfileOpen(false); }}
                   className="w-full text-left px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-700/50 flex items-center"
