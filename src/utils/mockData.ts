@@ -63,77 +63,77 @@ export const generateMockData = () => {
   const mockVisits: Visit[] = [
     {
       id: '101',
-      customerId: '1',
+      customerid: '1',
       date: '2025-01-05T14:30:00',
       service: 'Haircut',
       amount: 3500,
       points: 35,
-      staffMember: 'Maria'
+      staffmember: 'Maria'
     },
     {
       id: '102',
-      customerId: '1',
+      customerid: '1',
       date: '2025-02-10T10:15:00',
       service: 'Haircut & Beard Trim',
       amount: 5000,
       points: 50,
-      staffMember: 'Carlos'
+      staffmember: 'Carlos'
     },
     {
       id: '103',
-      customerId: '2',
+      customerid: '2',
       date: '2025-01-20T13:00:00',
       service: 'Color & Style',
       amount: 12000,
       points: 120,
       notes: 'Used hypoallergenic products',
-      staffMember: 'Jessica'
+      staffmember: 'Jessica'
     },
     {
       id: '104',
-      customerId: '2',
+      customerid: '2',
       date: '2025-02-15T16:45:00',
       service: 'Balayage',
       amount: 15000,
       points: 150,
-      staffMember: 'Jessica'
+      staffmember: 'Jessica'
     },
     {
       id: '105',
-      customerId: '3',
+      customerid: '3',
       date: '2025-02-05T11:30:00',
       service: 'Blowout',
       amount: 4500,
       points: 45,
-      staffMember: 'David'
+      staffmember: 'David'
     },
     {
       id: '106',
-      customerId: '4',
+      customerid: '4',
       date: '2025-01-25T12:30:00',
       service: 'Quick Cut',
       amount: 2500,
       points: 25,
       notes: 'Lunch break appointment',
-      staffMember: 'Carlos'
+      staffmember: 'Carlos'
     },
     {
       id: '107',
-      customerId: '5',
+      customerid: '5',
       date: '2025-01-10T15:00:00',
       service: 'Hair Treatment',
       amount: 7500,
       points: 75,
-      staffMember: 'Maria'
+      staffmember: 'Maria'
     },
     {
       id: '108',
-      customerId: '5',
+      customerid: '5',
       date: '2025-02-01T14:00:00',
       service: 'Cut & Style',
       amount: 6500,
       points: 65,
-      staffMember: 'Jessica'
+      staffmember: 'Jessica'
     }
   ];
 
@@ -143,45 +143,45 @@ export const generateMockData = () => {
       id: '201',
       name: 'Free Basic Haircut',
       description: 'Redeem for a complimentary basic haircut service',
-      pointsRequired: 200,
-      expiryDays: 90,
-      isActive: true,
+      pointsrequired: 200,
+      expirydays: 90,
+      isactive: true,
       category: 'service'
     },
     {
       id: '202',
       name: '50% Off Color Service',
       description: 'Get half off your next color service',
-      pointsRequired: 300,
-      expiryDays: 60,
-      isActive: true,
+      pointsrequired: 300,
+      expirydays: 60,
+      isactive: true,
       category: 'discount'
     },
     {
       id: '203',
       name: 'Free Product Sample Kit',
       description: 'Receive a kit of premium hair care samples',
-      pointsRequired: 100,
-      expiryDays: 30,
-      isActive: true,
+      pointsrequired: 100,
+      expirydays: 30,
+      isactive: true,
       category: 'product'
     },
     {
       id: '204',
       name: 'VIP Treatment Add-on',
       description: 'Add a luxury treatment to any service',
-      pointsRequired: 150,
-      expiryDays: 45,
-      isActive: true,
+      pointsrequired: 150,
+      expirydays: 45,
+      isactive: true,
       category: 'addon'
     },
     {
       id: '205',
       name: 'Bring a Friend Discount',
       description: 'Both you and a friend get 25% off services',
-      pointsRequired: 250,
-      expiryDays: 30,
-      isActive: true,
+      pointsrequired: 250,
+      expirydays: 30,
+      isactive: true,
       category: 'special'
     }
   ];
@@ -240,11 +240,11 @@ export const fetchCustomers = async (): Promise<Customer[]> => {
   return data || [];
 };
 
-export const fetchVisits = async (customerId?: string): Promise<Visit[]> => {
+export const fetchVisits = async (customerid?: string): Promise<Visit[]> => {
   let query = supabase.from('visits').select('*');
   
-  if (customerId) {
-    query = query.eq('customerId', customerId);
+  if (customerid) {
+    query = query.eq('customerid', customerid);
   }
   
   const { data, error } = await query.order('date', { ascending: false });
@@ -257,11 +257,11 @@ export const fetchVisits = async (customerId?: string): Promise<Visit[]> => {
   return data || [];
 };
 
-export const fetchRewards = async (isActive?: boolean): Promise<Reward[]> => {
+export const fetchRewards = async (isactive?: boolean): Promise<Reward[]> => {
   let query = supabase.from('rewards').select('*');
   
-  if (isActive !== undefined) {
-    query = query.eq('isActive', isActive);
+  if (isactive !== undefined) {
+    query = query.eq('isactive', isactive);
   }
   
   const { data, error } = await query;
@@ -423,4 +423,50 @@ export const addVisitToSupabase = async (visit: Omit<Visit, 'id'>): Promise<Visi
   }
   
   return data;
+};
+
+// Add these new functions for rewards CRUD operations
+export const addRewardToSupabase = async (reward: Omit<Reward, 'id'>): Promise<Reward> => {
+  const newReward = { ...reward, id: generateId() };
+  
+  const { data, error } = await supabase
+    .from('rewards')
+    .insert([newReward])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error adding reward to Supabase:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const updateRewardInSupabase = async (id: string, updates: Partial<Reward>): Promise<Reward> => {
+  const { data, error } = await supabase
+    .from('rewards')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating reward:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const deleteRewardFromSupabase = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('rewards')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error deleting reward:', error);
+    throw error;
+  }
 };

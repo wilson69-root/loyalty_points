@@ -9,7 +9,7 @@ const Settings = () => {
   const [settings, setSettings] = useState({
     businessName: 'Bella Salon & Spa',
     pointsPerDollar: 1,
-    expiryDays: 365,
+    expirydays: 365,
     welcomeBonus: 50,
     birthdayBonus: 25,
     smsNotifications: true,
@@ -76,8 +76,8 @@ const Settings = () => {
                   </div>
                   <input
                     type="number"
-                    value={settings.expiryDays}
-                    onChange={(e) => setSettings({...settings, expiryDays: parseInt(e.target.value)})}
+                    value={settings.expirydays}
+                    onChange={(e) => setSettings({...settings, expirydays: parseInt(e.target.value)})}
                     className="focus:ring-purple-500 focus:border-purple-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
                     min="0"
                     step="1"

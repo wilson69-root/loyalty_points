@@ -287,7 +287,7 @@ const CustomerDetail = () => {
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Visit History</h3>
                     <button
-                      onClick={() => navigate('/check-in', { state: { customerId: id } })}
+                      onClick={() => navigate('/check-in', { state: { customerid: id } })}
                       className="px-3 py-1.5 bg-purple-700 text-white text-sm font-medium rounded-md hover:bg-purple-800 transition-colors"
                     >
                       New Visit
@@ -327,9 +327,9 @@ const CustomerDetail = () => {
                               </div>
                             )}
                             
-                            {visit.staffMember && (
+                            {visit.staffmember && (
                               <div className="mt-2 text-xs text-gray-500">
-                                Staff: {visit.staffMember}
+                                Staff: {visit.staffmember}
                               </div>
                             )}
                           </div>
@@ -348,9 +348,9 @@ const CustomerDetail = () => {
                   ) : (
                     <div className="space-y-4">
                       {rewards
-                        .filter(reward => reward.isActive)
+                        .filter(reward => reward.isactive)
                         .map((reward) => {
-                          const canRedeem = totalPoints >= reward.pointsRequired;
+                          const canRedeem = totalPoints >= reward.pointsrequired;
                           
                           return (
                             <div 
@@ -375,11 +375,11 @@ const CustomerDetail = () => {
                                 </div>
                                 <div className="text-right">
                                   <div className={`text-sm font-medium ${canRedeem ? 'text-purple-700' : 'text-gray-500'}`}>
-                                    {reward.pointsRequired} points
+                                    {reward.pointsrequired} points
                                   </div>
-                                  {reward.expiryDays && (
+                                  {reward.expirydays && (
                                     <div className="text-xs text-gray-500 mt-1">
-                                      Valid for {reward.expiryDays} days
+                                      Valid for {reward.expirydays} days
                                     </div>
                                   )}
                                 </div>
@@ -395,7 +395,7 @@ const CustomerDetail = () => {
                                       : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                   }`}
                                 >
-                                  {canRedeem ? 'Redeem Reward' : `Need ${reward.pointsRequired - totalPoints} more points`}
+                                  {canRedeem ? 'Redeem Reward' : `Need ${reward.pointsrequired - totalPoints} more points`}
                                 </button>
                               </div>
                             </div>

@@ -4,6 +4,7 @@ import { Search, UserPlus, Phone, Package, ArrowRight } from 'lucide-react';
 import { useLoyalty } from '../context/LoyaltyContext';
 import { generateId, formatPhoneNumber, addCustomer as addCustomerToSupabase } from '../utils/mockData';
 import toast from 'react-hot-toast';
+import { addVisitToSupabase } from '../utils/mockData';
 
 const CheckIn = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const CheckIn = () => {
     name: '',
     amount: '',
     notes: '',
-    staffMember: '',
+    staffmember: '',
   });
   
   const presetServices = [
@@ -42,11 +43,11 @@ const CheckIn = () => {
     { name: 'Treatment', defaultAmount: 65 },
   ];
   
-  // If we have a customerId from the state, use it
+  // If we have a customerid from the state, use it
   useEffect(() => {
-    const customerId = location.state?.customerId;
-    if (customerId) {
-      const customer = customers.find(c => c.id === customerId);
+    const customerid = location.state?.customerid;
+    if (customerid) {
+      const customer = customers.find(c => c.id === customerid);
       if (customer) {
         setSelectedCustomer(customer);
         setPhoneNumber(customer.phone);
@@ -124,19 +125,18 @@ const CheckIn = () => {
     
     const visit = {
       id: generateId(),
-      customerId: selectedCustomer.id,
+      customerid: selectedCustomer.id,
       date: new Date().toISOString(),
       service: service.name,
       amount: amount * 100, // Convert to cents for storage
       points: Math.floor(amount),
       notes: service.notes,
-      staffMember: service.staffMember,
+      staffmember: service.staffmember,
     };
     
     try {
       // Save to Supabase
-      // TODO: Implement addVisitToSupabase function or import it from utils
-      // await addVisitToSupabase(visit);
+      await addVisitToSupabase(visit);
       
       // Update local state
       addVisit(visit);
@@ -371,8 +371,8 @@ const CheckIn = () => {
             Staff Member
           </label>
           <select
-            value={service.staffMember}
-            onChange={(e) => setService({...service, staffMember: e.target.value})}
+            value={service.staffmember}
+            onChange={(e) => setService({...service, staffmember: e.target.value})}
             className="focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md"
           >
             <option value="">Select staff member</option>

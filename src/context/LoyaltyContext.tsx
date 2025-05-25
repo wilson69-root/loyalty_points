@@ -7,7 +7,11 @@ import {
   addCustomer as addCustomerToSupabase,
   updateCustomer as updateCustomerToSupabase,
   deleteCustomer as deleteCustomerToSupabase,
-  addVisitToSupabase
+  addVisitToSupabase,
+  // Add these new imports
+  addRewardToSupabase,
+  updateRewardInSupabase,
+  deleteRewardFromSupabase
 } from '../utils/mockData';
 
 interface LoyaltyContextType {
@@ -19,10 +23,10 @@ interface LoyaltyContextType {
   updateCustomer: (id: string, customer: Partial<Customer>) => void;
   findCustomerByPhone: (phone: string) => Customer | undefined;
   addVisit: (visit: Visit) => void;
-  getCustomerVisits: (customerId: string) => Visit[];
-  getCustomerPoints: (customerId: string) => number;
+  getCustomerVisits: (customerid: string) => Visit[];
+  getCustomerPoints: (customerid: string) => number;
   updateRewards: (rewards: Reward[]) => void;
-  redeemReward: (customerId: string, rewardId: string) => void;
+  redeemReward: (customerid: string, rewardId: string) => void;
 }
 
 const LoyaltyContext = createContext<LoyaltyContextType | undefined>(undefined);
@@ -90,22 +94,52 @@ export const LoyaltyProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  const getCustomerVisits = (customerId: string): Visit[] => {
-    return visits.filter((v) => v.customerId === customerId);
+  const getCustomerVisits = (customerid: string): Visit[] => {
+    return visits.filter((v) => v.customerid === customerid);
   };
 
-  const getCustomerPoints = (customerId: string): number => {
-    return getCustomerVisits(customerId).reduce((total, visit) => total + visit.points, 0);
+  const getCustomerPoints = (customerid: string): number => {
+    return getCustomerVisits(customerid).reduce((total, visit) => total + visit.points, 0);
   };
 
-  const updateRewards = (newRewards: Reward[]) => {
-    setRewards(newRewards);
+  // Update the updateRewards function to persist to Supabase
+  const updateRewards = async (newRewards: Reward[]) => {
+    try {
+      // Find which rewards are new, updated, or deleted
+      const currentRewardIds = rewards.map(r => r.id);
+      const newRewardIds = newRewards.map(r => r.id);
+      
+      // New rewards to add
+      const rewardsToAdd = newRewards.filter(r => !r.id || !currentRewardIds.includes(r.id));
+      
+      // Existing rewards that were updated
+      const rewardsToUpdate = newRewards.filter(r => 
+        r.id && currentRewardIds.includes(r.id) && 
+        JSON.stringify(r) !== JSON.stringify(rewards.find(cr => cr.id === r.id))
+      );
+      
+      // Rewards that were deleted
+      const rewardsToDelete = rewards.filter(r => !newRewardIds.includes(r.id));
+      
+      // Process all operations
+      await Promise.all([
+        ...rewardsToAdd.map(r => addRewardToSupabase(r)),
+        ...rewardsToUpdate.map(r => updateRewardInSupabase(r.id, r)),
+        ...rewardsToDelete.map(r => deleteRewardFromSupabase(r.id))
+      ]);
+      
+      // Update local state
+      setRewards(newRewards);
+    } catch (error) {
+      console.error('Error updating rewards:', error);
+      throw error;
+    }
   };
 
-  const redeemReward = (customerId: string, rewardId: string) => {
+  const redeemReward = (customerid: string, rewardId: string) => {
     // Logic to redeem a reward would go here
     // This would typically update the visits or a separate redemptions table
-    console.log(`Customer ${customerId} redeemed reward ${rewardId}`);
+    console.log(`Customer ${customerid} redeemed reward ${rewardId}`);
   };
 
   return (

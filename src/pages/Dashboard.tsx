@@ -143,7 +143,7 @@ const Dashboard = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {recentVisits.map((visit) => {
-                const customer = customers.find(c => c.id === visit.customerId);
+                const customer = customers.find(c => c.id === visit.customerid);
                 return (
                   <tr key={visit.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap">
@@ -157,7 +157,7 @@ const Dashboard = () => {
                         +{visit.points}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">{visit.staffMember}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{visit.staffmember}</td>
                   </tr>
                 );
               })}

@@ -12,28 +12,28 @@ export interface Customer {
 
 export interface Visit {
   id: string;
-  customerId: string;
+  customerid: string;
   date: string;
   service: string;
   amount: number;
   points: number;
   notes?: string;
-  staffMember?: string;
+  staffmember?: string;
 }
 
 export interface Reward {
   id: string;
   name: string;
   description: string;
-  pointsRequired: number;
-  expiryDays?: number;
-  isActive: boolean;
+  pointsrequired: number;
+  expirydays?: number;
+  isactive: boolean;
   category?: string;
 }
 
 export interface RedemptionHistory {
   id: string;
-  customerId: string;
+  customerid: string;
   rewardId: string;
   date: string;
   points: number;
@@ -44,7 +44,7 @@ export type ServiceCategory = 'haircut' | 'color' | 'treatment' | 'styling' | 'o
 export interface BusinessSettings {
   name: string;
   pointsPerDollar: number;
-  expiryDays: number;
+  expirydays: number;
   welcomeBonus: number;
   birthdayBonus: number;
 }

@@ -12,18 +12,18 @@ const Rewards = () => {
   const [newReward, setNewReward] = useState({
     name: '',
     description: '',
-    pointsRequired: '',
-    expiryDays: '',
+    pointsrequired: '',
+    expirydays: '',
     category: '',
   });
   
-  const handleAddReward = () => {
-    if (!newReward.name || !newReward.pointsRequired) {
+  const handleAddReward = async () => {
+    if (!newReward.name || !newReward.pointsrequired) {
       toast.error('Please enter a name and points required');
       return;
     }
     
-    const points = parseInt(newReward.pointsRequired, 10);
+    const points = parseInt(newReward.pointsrequired, 10);
     if (isNaN(points) || points <= 0) {
       toast.error('Please enter a valid point value');
       return;
@@ -33,49 +33,59 @@ const Rewards = () => {
       id: generateId(),
       name: newReward.name,
       description: newReward.description,
-      pointsRequired: points,
-      expiryDays: newReward.expiryDays ? parseInt(newReward.expiryDays, 10) : undefined,
-      isActive: true,
+      pointsrequired: points,
+      expirydays: newReward.expirydays ? parseInt(newReward.expirydays, 10) : undefined,
+      isactive: true,
       category: newReward.category || undefined,
     };
     
-    updateRewards([...rewards, reward]);
-    setIsAdding(false);
-    setNewReward({
-      name: '',
-      description: '',
-      pointsRequired: '',
-      expiryDays: '',
-      category: '',
-    });
-    toast.success('Reward created successfully!');
+    try {
+      await updateRewards([...rewards, reward]);
+      setIsAdding(false);
+      setNewReward({
+        name: '',
+        description: '',
+        pointsrequired: '',
+        expirydays: '',
+        category: '',
+      });
+      toast.success('Reward created successfully!');
+    } catch (error) {
+      console.error('Error creating reward:', error);
+      toast.error('Failed to create reward. Please try again.');
+    }
   };
   
-  const handleUpdateReward = (id: string) => {
-    const updatedRewards = rewards.map(reward => {
-      if (reward.id === id) {
-        return {
-          ...reward,
-          name: newReward.name || reward.name,
-          description: newReward.description || reward.description,
-          pointsRequired: newReward.pointsRequired ? parseInt(newReward.pointsRequired, 10) : reward.pointsRequired,
-          expiryDays: newReward.expiryDays ? parseInt(newReward.expiryDays, 10) : reward.expiryDays,
-          category: newReward.category || reward.category,
-        };
-      }
-      return reward;
-    });
-    
-    updateRewards(updatedRewards);
-    setEditingId(null);
-    setNewReward({
-      name: '',
-      description: '',
-      pointsRequired: '',
-      expiryDays: '',
-      category: '',
-    });
-    toast.success('Reward updated successfully!');
+  const handleUpdateReward = async (id: string) => {
+    try {
+      const updatedRewards = rewards.map(reward => {
+        if (reward.id === id) {
+          return {
+            ...reward,
+            name: newReward.name || reward.name,
+            description: newReward.description || reward.description,
+            pointsrequired: newReward.pointsrequired ? parseInt(newReward.pointsrequired, 10) : reward.pointsrequired,
+            expirydays: newReward.expirydays ? parseInt(newReward.expirydays, 10) : reward.expirydays,
+            category: newReward.category || reward.category,
+          };
+        }
+        return reward;
+      });
+      
+      await updateRewards(updatedRewards);
+      setEditingId(null);
+      setNewReward({
+        name: '',
+        description: '',
+        pointsrequired: '',
+        expirydays: '',
+        category: '',
+      });
+      toast.success('Reward updated successfully!');
+    } catch (error) {
+      console.error('Error updating reward:', error);
+      toast.error('Failed to update reward. Please try again.');
+    }
   };
   
   const handleEditReward = (reward: typeof rewards[0]) => {
@@ -83,28 +93,28 @@ const Rewards = () => {
     setNewReward({
       name: reward.name,
       description: reward.description || '',
-      pointsRequired: reward.pointsRequired.toString(),
-      expiryDays: reward.expiryDays ? reward.expiryDays.toString() : '',
+      pointsrequired: reward.pointsrequired.toString(),
+      expirydays: reward.expirydays ? reward.expirydays.toString() : '',
       category: reward.category || '',
     });
   };
   
-  const handleToggleActive = (id: string) => {
+  const handleToggleActive = async (id: string) => {
     const updatedRewards = rewards.map(reward => {
       if (reward.id === id) {
-        return { ...reward, isActive: !reward.isActive };
+        return { ...reward, isactive: !reward.isactive };
       }
       return reward;
     });
     
-    updateRewards(updatedRewards);
+    await updateRewards(updatedRewards);
     toast.success('Reward status updated');
   };
   
-  const handleDeleteReward = (id: string) => {
+  const handleDeleteReward = async (id: string) => {
     if (confirm('Are you sure you want to delete this reward?')) {
       const updatedRewards = rewards.filter(reward => reward.id !== id);
-      updateRewards(updatedRewards);
+      await updateRewards(updatedRewards);
       toast.success('Reward deleted');
     }
   };
@@ -144,8 +154,8 @@ const Rewards = () => {
           </label>
           <input
             type="number"
-            value={newReward.pointsRequired}
-            onChange={(e) => setNewReward({...newReward, pointsRequired: e.target.value})}
+            value={newReward.pointsrequired}
+            onChange={(e) => setNewReward({...newReward, pointsrequired: e.target.value})}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500"
             placeholder="e.g. 100"
             min="1"
@@ -192,8 +202,8 @@ const Rewards = () => {
           </label>
           <input
             type="number"
-            value={newReward.expiryDays}
-            onChange={(e) => setNewReward({...newReward, expiryDays: e.target.value})}
+            value={newReward.expirydays}
+            onChange={(e) => setNewReward({...newReward, expirydays: e.target.value})}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500"
             placeholder="e.g. 30 (leave empty for no expiry)"
             min="1"
@@ -209,8 +219,8 @@ const Rewards = () => {
             setNewReward({
               name: '',
               description: '',
-              pointsRequired: '',
-              expiryDays: '',
+              pointsrequired: '',
+              expirydays: '',
               category: '',
             });
           }}
@@ -273,7 +283,7 @@ const Rewards = () => {
                 <tr key={reward.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <Award className={`h-5 w-5 mr-3 ${reward.isActive ? 'text-purple-600' : 'text-gray-400'}`} />
+                      <Award className={`h-5 w-5 mr-3 ${reward.isactive ? 'text-purple-600' : 'text-gray-400'}`} />
                       <div>
                         <div className="text-sm font-medium text-gray-900">{reward.name}</div>
                         {reward.description && (
@@ -283,9 +293,9 @@ const Rewards = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{reward.pointsRequired} points</div>
-                    {reward.expiryDays && (
-                      <div className="text-xs text-gray-500">Expires in {reward.expiryDays} days</div>
+                    <div className="text-sm text-gray-900">{reward.pointsrequired} points</div>
+                    {reward.expirydays && (
+                      <div className="text-xs text-gray-500">Expires in {reward.expirydays} days</div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -301,12 +311,12 @@ const Rewards = () => {
                     <button
                       onClick={() => handleToggleActive(reward.id)}
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        reward.isActive 
+                        reward.isactive 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {reward.isActive ? 'Active' : 'Inactive'}
+                      {reward.isactive ? 'Active' : 'Inactive'}
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
