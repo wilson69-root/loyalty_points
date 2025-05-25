@@ -14,22 +14,22 @@ const Sidebar = () => {
 
   return (
     <aside 
-      className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out ${
+      className={`bg-gray-900 border-r border-gray-800 flex flex-col transition-all duration-300 ease-in-out ${
         collapsed ? 'w-16' : 'w-64'
       }`}
     >
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         {!collapsed && (
-          <h2 className="text-xl font-bold text-purple-700">LoyaltyPro</h2>
+          <h2 className="text-xl font-bold text-purple-400 tracking-wide">LoyaltyPro</h2>
         )}
         <button 
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1 rounded-md hover:bg-gray-100 transition-colors duration-200"
+          className="p-1 rounded-md hover:bg-gray-800 transition-colors duration-200"
         >
           {collapsed ? (
-            <ChevronRight className="h-5 w-5 text-gray-500" />
+            <ChevronRight className="h-5 w-5 text-gray-400" />
           ) : (
-            <ChevronLeft className="h-5 w-5 text-gray-500" />
+            <ChevronLeft className="h-5 w-5 text-gray-400" />
           )}
         </button>
       </div>
@@ -40,11 +40,11 @@ const Sidebar = () => {
             <li key={item.path} className="px-2">
               <NavLink
                 to={item.path}
-                className={({ isactive }) => 
-                  `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors duration-200 ${
-                    isactive 
-                      ? 'bg-purple-50 text-purple-700' 
-                      : 'text-gray-700 hover:bg-gray-100'
+                className={({ isActive }) => 
+                  `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors duration-200 font-medium text-base ${
+                    isActive 
+                      ? 'bg-purple-900/60 text-purple-300' 
+                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                   }`
                 }
               >
@@ -56,7 +56,7 @@ const Sidebar = () => {
         </ul>
       </nav>
       
-      <div className="p-4 border-t border-gray-200 flex items-center justify-center">
+      <div className="p-4 border-t border-gray-800 flex items-center justify-center">
         <div className={`${collapsed ? 'hidden' : 'block'} text-xs text-gray-500`}>
           &copy; 2025 LoyaltyPro
         </div>

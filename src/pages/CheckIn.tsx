@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, UserPlus, Phone, Package, ArrowRight } from 'lucide-react';
+import { Search, UserPlus, Phone, Package, ArrowRight, Briefcase, Users, CalendarDays, Building } from 'lucide-react'; // Added more icons for variety if needed
 import { useLoyalty } from '../context/LoyaltyContext';
-import { generateId, formatPhoneNumber, addCustomer as addCustomerToSupabase } from '../utils/mockData';
+import { generateId, addCustomer as addCustomerToSupabase, addVisitToSupabase } from '../utils/mockData'; // Removed formatPhoneNumber as it's not used here
 import toast from 'react-hot-toast';
-import { addVisitToSupabase } from '../utils/mockData';
 
 const CheckIn = () => {
   const navigate = useNavigate();
@@ -14,7 +13,7 @@ const CheckIn = () => {
     findCustomerByPhone, 
     addCustomer, 
     addVisit, 
-    getCustomerPoints 
+    // getCustomerPoints // Not directly used in this component's logic flow, consider removing if not needed for future enhancements
   } = useLoyalty();
   
   const [phase, setPhase] = useState<'search' | 'customer' | 'service'>('search');
@@ -35,15 +34,14 @@ const CheckIn = () => {
   });
   
   const presetServices = [
-    { name: 'Haircut', defaultAmount: 35 },
-    { name: 'Haircut & Style', defaultAmount: 55 },
-    { name: 'Color', defaultAmount: 85 },
-    { name: 'Highlights', defaultAmount: 120 },
-    { name: 'Blowout', defaultAmount: 45 },
-    { name: 'Treatment', defaultAmount: 65 },
+    { name: 'Haircut', defaultAmount: 35, icon: <Briefcase size={20} className="mr-2 text-purple-400" /> },
+    { name: 'Haircut & Style', defaultAmount: 55, icon: <Users size={20} className="mr-2 text-purple-400" /> },
+    { name: 'Color', defaultAmount: 85, icon: <Package size={20} className="mr-2 text-purple-400" /> }, // Re-using Package icon
+    { name: 'Highlights', defaultAmount: 120, icon: <CalendarDays size={20} className="mr-2 text-purple-400" /> }, // Example, choose appropriate
+    { name: 'Blowout', defaultAmount: 45, icon: <Building size={20} className="mr-2 text-purple-400" /> }, // Example, choose appropriate
+    { name: 'Treatment', defaultAmount: 65, icon: <UserPlus size={20} className="mr-2 text-purple-400" /> }, // Example, choose appropriate
   ];
   
-  // If we have a customerid from the state, use it
   useEffect(() => {
     const customerid = location.state?.customerid;
     if (customerid) {
@@ -57,7 +55,7 @@ const CheckIn = () => {
   }, [location.state, customers]);
   
   const handlePhoneSearch = () => {
-    if (phoneNumber.length < 7) {
+    if (phoneNumber.length < 7) { // Basic validation, consider more robust validation
       toast.error('Please enter a valid phone number');
       return;
     }
@@ -66,10 +64,11 @@ const CheckIn = () => {
     if (customer) {
       setSelectedCustomer(customer);
       setPhase('service');
-      toast.success(`Found ${customer.firstname} ${customer.lastname}`);
+      toast.success(`Welcome back, ${customer.firstname}!`);
     } else {
       setNewCustomer({...newCustomer, phone: phoneNumber});
       setPhase('customer');
+      toast('New customer? Please fill in details.');
     }
   };
   
@@ -78,25 +77,24 @@ const CheckIn = () => {
       toast.error('Please enter first and last name');
       return;
     }
+    // Basic email validation (optional, enhance as needed)
+    if (newCustomer.email && !/\S+@\S+\.\S+/.test(newCustomer.email)) {
+        toast.error('Please enter a valid email address');
+        return;
+    }
     
-    const customer = {
+    const customerData = {
       id: generateId(),
-      firstname: newCustomer.firstname,
-      lastname: newCustomer.lastname,
-      phone: newCustomer.phone,
-      email: newCustomer.email,
+      ...newCustomer,
       joindate: new Date().toISOString(),
     };
     
     try {
-      // Save to Supabase
-      const savedCustomer = await addCustomerToSupabase(customer);
-      
-      // Update local state
+      const savedCustomer = await addCustomerToSupabase(customerData);
       addCustomer(savedCustomer);
       setSelectedCustomer(savedCustomer);
       setPhase('service');
-      toast.success('New customer created!');
+      toast.success('New customer created successfully!');
     } catch (error) {
       console.error('Error creating customer:', error);
       toast.error('Failed to create customer. Please try again.');
@@ -123,166 +121,120 @@ const CheckIn = () => {
       return;
     }
     
-    const visit = {
+    const visitData = {
       id: generateId(),
       customerid: selectedCustomer.id,
       date: new Date().toISOString(),
       service: service.name,
-      amount: amount * 100, // Convert to cents for storage
-      points: Math.floor(amount),
+      amount: amount * 100, // Store in cents
+      points: Math.floor(amount), // Example: 1 point per dollar
       notes: service.notes,
       staffmember: service.staffmember,
     };
     
     try {
-      // Save to Supabase
-      await addVisitToSupabase(visit);
-      
-      // Update local state
-      addVisit(visit);
-      toast.success(`Visit recorded! +${Math.floor(amount)} points earned`);
+      await addVisitToSupabase(visitData);
+      addVisit(visitData);
+      toast.success(`Visit recorded! +${Math.floor(amount)} points earned by ${selectedCustomer.firstname}.`);
       navigate(`/customers/${selectedCustomer.id}`);
     } catch (error) {
       console.error('Error recording visit:', error);
       toast.error('Failed to record visit. Please try again.');
     }
   };
-  
+
+  const inputStyle = "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-purple-500 focus:border-purple-500 focus:outline-none";
+  const buttonStyle = "px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-150 ease-in-out flex items-center justify-center";
+  const cardStyle = "bg-gray-800 p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-700";
+
   const renderSearchPhase = () => (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 max-w-md mx-auto">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Customer Check-In</h2>
+    <div className={`${cardStyle} max-w-lg mx-auto`}>
+      <h2 className="text-2xl font-bold text-purple-400 mb-6 text-center">Customer Check-In</h2>
       
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="phoneSearch" className="block text-sm font-medium text-gray-300 mb-1">
             Enter Customer Phone Number
           </label>
-          <div className="mt-1 flex rounded-md shadow-sm">
-            <div className="relative flex items-stretch flex-grow">
+          <div className="mt-1 flex rounded-lg shadow-sm">
+            <div className="relative flex items-stretch flex-grow focus-within:z-10">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Phone className="h-5 w-5 text-gray-400" />
               </div>
               <input
+                id="phoneSearch"
                 type="tel"
                 value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value.replace(/[^\d-]/g, ''))}
-                placeholder="+254712345789"
-                className="focus:ring-purple-500 focus:border-purple-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-3"
+                onChange={(e) => setPhoneNumber(e.target.value.replace(/[^\d+\-().\s]/g, ''))} // Allow more characters for phone
+                placeholder="+1 (555) 123-4567"
+                className={`${inputStyle} pl-10 rounded-r-none`}
               />
             </div>
             <button
               onClick={handlePhoneSearch}
-              className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-700 hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              className={`${buttonStyle} ml-0 rounded-l-none`}
             >
-              <Search className="h-4 w-4 mr-1" />
+              <Search className="h-5 w-5 mr-2" />
               Find
             </button>
           </div>
         </div>
         
-        <div className="border-t border-gray-200 pt-4">
-          <p className="text-sm text-gray-500 mb-4">Recent customers:</p>
-          <div className="space-y-2">
-            {customers.slice(0, 3).map((customer) => (
-              <button
-                key={customer.id}
-                onClick={() => {
-                  setSelectedCustomer(customer);
-                  setPhoneNumber(customer.phone);
-                  setPhase('service');
-                }}
-                className="w-full flex items-center p-3 border border-gray-200 rounded-md hover:bg-purple-50 transition-colors"
-              >
-                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-medium text-sm">
-                  {customer.firstname.charAt(0)}{customer.lastname.charAt(0)}
-                </div>
-                <div className="ml-3 text-left">
-                  <p className="text-sm font-medium text-gray-900">{customer.firstname} {customer.lastname}</p>
-                  <p className="text-xs text-gray-500">{formatPhoneNumber(customer.phone)}</p>
-                </div>
-              </button>
-            ))}
+        {customers.length > 0 && (
+          <div className="border-t border-gray-700 pt-6 mt-6">
+            <p className="text-sm text-gray-400 mb-4">Or select a recent customer:</p>
+            <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+              {customers.slice(0, 5).map((customer) => (
+                <button
+                  key={customer.id}
+                  onClick={() => {
+                    setSelectedCustomer(customer);
+                    setPhoneNumber(customer.phone);
+                    setPhase('service');
+                    toast.success(`Selected ${customer.firstname} ${customer.lastname}`);
+                  }}
+                  className="w-full flex items-center p-4 border border-gray-700 bg-gray-750 hover:bg-gray-700 rounded-lg transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-medium text-lg">
+                    {customer.firstname.charAt(0)}{customer.lastname.charAt(0)}
+                  </div>
+                  <div className="ml-4 text-left">
+                    <p className="text-md font-medium text-gray-100">{customer.firstname} {customer.lastname}</p>
+                    <p className="text-xs text-gray-400">{customer.phone}</p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-gray-400 ml-auto" />
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
   
-  const renderNewCustomerPhase = () => (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 max-w-md mx-auto">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">New Customer</h2>
-      
+  const renderCustomerPhase = () => (
+    <div className={`${cardStyle} max-w-lg mx-auto`}>
+      <h2 className="text-2xl font-bold text-purple-400 mb-6 text-center">New Customer Details</h2>
+      <p className="text-center text-gray-400 mb-6">Phone: {newCustomer.phone || 'Not specified'}</p>
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              First Name *
-            </label>
-            <input
-              type="text"
-              value={newCustomer.firstname}
-              onChange={(e) => setNewCustomer({...newCustomer, firstname: e.target.value})}
-              className="focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name *
-            </label>
-            <input
-              type="text"
-              value={newCustomer.lastname}
-              onChange={(e) => setNewCustomer({...newCustomer, lastname: e.target.value})}
-              className="focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              required
-            />
-          </div>
-        </div>
-        
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Phone
-          </label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Phone className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="tel"
-              value={newCustomer.phone}
-              onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
-              className="focus:ring-purple-500 focus:border-purple-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-              disabled
-            />
-          </div>
+          <label htmlFor="firstname" className="block text-sm font-medium text-gray-300 mb-1">First Name</label>
+          <input id="firstname" type="text" value={newCustomer.firstname} onChange={(e) => setNewCustomer({...newCustomer, firstname: e.target.value})} placeholder="Enter first name" className={inputStyle} />
         </div>
-        
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            value={newCustomer.email}
-            onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})}
-            className="focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md"
-          />
+          <label htmlFor="lastname" className="block text-sm font-medium text-gray-300 mb-1">Last Name</label>
+          <input id="lastname" type="text" value={newCustomer.lastname} onChange={(e) => setNewCustomer({...newCustomer, lastname: e.target.value})} placeholder="Enter last name" className={inputStyle} />
         </div>
-        
-        <div className="pt-4 flex justify-between">
-          <button
-            onClick={() => setPhase('search')}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-          >
-            Back
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Email (Optional)</label>
+          <input id="email" type="email" value={newCustomer.email} onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})} placeholder="Enter email address" className={inputStyle} />
+        </div>
+        <div className="flex justify-between items-center pt-4">
+          <button onClick={() => setPhase('search')} className={`${buttonStyle} bg-gray-600 hover:bg-gray-500`}>
+            Back to Search
           </button>
-          <button
-            onClick={handleCreateCustomer}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-700 hover:bg-purple-800"
-          >
-            <UserPlus className="h-4 w-4 mr-1" />
-            Create Customer
+          <button onClick={handleCreateCustomer} className={`${buttonStyle} flex items-center`}>
+            <UserPlus className="h-5 w-5 mr-2" /> Create & Proceed
           </button>
         </div>
       </div>
@@ -290,128 +242,56 @@ const CheckIn = () => {
   );
   
   const renderServicePhase = () => (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 max-w-lg mx-auto">
-      <h2 className="text-xl font-bold text-gray-900 mb-2">Record Visit</h2>
-      
+    <div className={`${cardStyle} max-w-2xl mx-auto`}>
       {selectedCustomer && (
-        <div className="flex items-center mb-6 bg-purple-50 p-3 rounded-md">
-          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-medium">
-            {selectedCustomer.firstname.charAt(0)}{selectedCustomer.lastname.charAt(0)}
-          </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-gray-900">
-              {selectedCustomer.firstname} {selectedCustomer.lastname}
-            </p>
-            <div className="flex items-center text-xs text-gray-500">
-              <Package className="h-3 w-3 text-purple-500 mr-1" />
-              <span>{getCustomerPoints(selectedCustomer.id)} points</span>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              setSelectedCustomer(null);
-              setPhoneNumber('');
-              setPhase('search');
-            }}
-            className="ml-auto text-sm text-purple-700 hover:text-purple-800"
-          >
-            Change
-          </button>
+        <div className="mb-8 p-4 bg-gray-750 rounded-lg border border-gray-700">
+          <h3 className="text-xl font-semibold text-purple-400">Checking in: {selectedCustomer.firstname} {selectedCustomer.lastname}</h3>
+          <p className="text-sm text-gray-400">Phone: {selectedCustomer.phone}</p>
+          {/* <p className="text-sm text-gray-400">Points: {getCustomerPoints(selectedCustomer.id)}</p> */}
         </div>
       )}
+      <h2 className="text-2xl font-bold text-purple-400 mb-6 text-center">Record Visit / Service</h2>
       
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Service *
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
-            {presetServices.map((preset) => (
-              <button
-                key={preset.name}
-                onClick={() => handleSelectService(preset)}
-                className={`px-3 py-2 text-xs font-medium rounded-md border ${
-                  service.name === preset.name
-                    ? 'bg-purple-100 border-purple-300 text-purple-800'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {preset.name}
-              </button>
-            ))}
-          </div>
-          <input
-            type="text"
-            value={service.name}
-            onChange={(e) => setService({...service, name: e.target.value})}
-            placeholder="Custom service"
-            className="focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md"
-          />
+      <div className="mb-6">
+        <h3 className="text-lg font-medium text-gray-300 mb-3">Quick Add Services:</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {presetServices.map((preset) => (
+            <button
+              key={preset.name}
+              onClick={() => handleSelectService(preset)}
+              className="flex flex-col items-center justify-center p-3 border border-gray-700 bg-gray-750 hover:bg-gray-700 rounded-lg transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 h-24 text-center"
+            >
+              {preset.icon}
+              <span className="text-sm font-medium text-gray-200 mt-1">{preset.name}</span>
+              <span className="text-xs text-purple-400">(${preset.defaultAmount})</span>
+            </button>
+          ))}
         </div>
-        
+      </div>
+      
+      <div className="space-y-4 border-t border-gray-700 pt-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Amount ($) *
-          </label>
-          <input
-            type="number"
-            value={service.amount}
-            onChange={(e) => setService({...service, amount: e.target.value})}
-            className="focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md"
-            min="0"
-            step="0.01"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Customer will earn {service.amount ? Math.floor(parseFloat(service.amount)) : 0} points
-          </p>
+          <label htmlFor="serviceName" className="block text-sm font-medium text-gray-300 mb-1">Service Name</label>
+          <input id="serviceName" type="text" value={service.name} onChange={(e) => setService({...service, name: e.target.value})} placeholder="e.g., Haircut, Consultation" className={inputStyle} />
         </div>
-        
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Staff Member
-          </label>
-          <select
-            value={service.staffmember}
-            onChange={(e) => setService({...service, staffmember: e.target.value})}
-            className="focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md"
-          >
-            <option value="">Select staff member</option>
-            <option value="Jessica">Jessica</option>
-            <option value="Carlos">Carlos</option>
-            <option value="Maria">Maria</option>
-            <option value="David">David</option>
-          </select>
+          <label htmlFor="serviceAmount" className="block text-sm font-medium text-gray-300 mb-1">Amount ($)</label>
+          <input id="serviceAmount" type="number" value={service.amount} onChange={(e) => setService({...service, amount: e.target.value})} placeholder="e.g., 50.00" className={inputStyle} />
         </div>
-        
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Notes
-          </label>
-          <textarea
-            value={service.notes}
-            onChange={(e) => setService({...service, notes: e.target.value})}
-            rows={2}
-            className="focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md"
-            placeholder="Optional service notes"
-          ></textarea>
+          <label htmlFor="staffMember" className="block text-sm font-medium text-gray-300 mb-1">Staff Member (Optional)</label>
+          <input id="staffMember" type="text" value={service.staffmember} onChange={(e) => setService({...service, staffmember: e.target.value})} placeholder="e.g., Jane Doe" className={inputStyle} />
         </div>
-        
-        <div className="pt-4 flex justify-between">
-          <button
-            onClick={() => {
-              setPhase('search');
-              setSelectedCustomer(null);
-            }}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-          >
-            Back
+        <div>
+          <label htmlFor="serviceNotes" className="block text-sm font-medium text-gray-300 mb-1">Notes (Optional)</label>
+          <textarea id="serviceNotes" value={service.notes} onChange={(e) => setService({...service, notes: e.target.value})} placeholder="Any specific details..." rows={3} className={inputStyle}></textarea>
+        </div>
+        <div className="flex flex-col sm:flex-row justify-between items-center pt-4 space-y-3 sm:space-y-0 sm:space-x-3">
+          <button onClick={() => { setPhase('search'); setSelectedCustomer(null); setPhoneNumber(''); }} className={`${buttonStyle} bg-gray-600 hover:bg-gray-500 w-full sm:w-auto`}>
+            Cancel / New Search
           </button>
-          <button
-            onClick={handleAddVisit}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-700 hover:bg-purple-800"
-          >
-            <ArrowRight className="h-4 w-4 mr-1" />
-            Complete Check-In
+          <button onClick={handleAddVisit} className={`${buttonStyle} w-full sm:w-auto flex items-center`}>
+            <Package className="h-5 w-5 mr-2" /> Add Visit & Earn Points
           </button>
         </div>
       </div>
@@ -419,10 +299,12 @@ const CheckIn = () => {
   );
   
   return (
-    <div className="py-4">
-      {phase === 'search' && renderSearchPhase()}
-      {phase === 'customer' && renderNewCustomerPhase()}
-      {phase === 'service' && renderServicePhase()}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 py-8 px-4 sm:px-6 lg:px-8 text-gray-100">
+      <div className="max-w-4xl mx-auto">
+        {phase === 'search' && renderSearchPhase()}
+        {phase === 'customer' && renderCustomerPhase()}
+        {phase === 'service' && renderServicePhase()}
+      </div>
     </div>
   );
 };
